@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Brush Twice Daily",
+    "description": "Brush your teeth for two minutes, twice a day, using a fluoride toothpaste to prevent cavities."
+  },
+  {
+    "id": 2,
+    "title": "Floss Every Day",
+    "description": "Flossing removes plaque and bacteria from between teeth where a toothbrush can't reach."
+  },
+  {
+    "id": 3,
+    "title": "Limit Sugary Foods",
+    "description": "Sugar converts to acid in the mouth, which can erode enamel. Limit sweets and acidic drinks."
+  },
+  {
+    "id": 4,
+    "title": "Visit Dentist Regularly",
+    "description": "Schedule checkups every 6 months to catch issues early and get professional cleaning."
+  },
+  {
+    "id": 5,
+    "title": "Use Mouthwash",
+    "description": "Therapeutic mouthwash can reduce plaque, gingivitis, and bad breath."
+  },
+  {
+    "id": 6,
+    "title": "Drink More Water",
+    "description": "Water washes away food residue and keeps your mouth hydrated, neutralizing acids."
+  },
+  {
+    "id": 7,
+    "title": "Don't Smoke",
+    "description": "Smoking increases the risk of gum disease and oral cancer. Quitting improves oral health significantly."
+  },
+  {
+    "id": 8,
+    "title": "Replace Your Toothbrush",
+    "description": "Change your toothbrush every 3-4 months or sooner if the bristles are frayed."
+  }
+]
