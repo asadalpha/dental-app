@@ -2,7 +2,7 @@
 
 IntelliDent AI is a modern, premium Flutter application designed for AI-driven dental diagnostics and patient care. The app features a high-fidelity user interface with smooth animations and a consistent design language.
 
-## ✨ Features
+## Features
 
 - **Dynamic Onboarding**: A multi-step animated onboarding experience introducing users to the app's core value propositions.
 - **Secure Authentication**: A premium login interface with form validation and simulated authentication logic powered by `Provider`.
@@ -16,7 +16,7 @@ IntelliDent AI is a modern, premium Flutter application designed for AI-driven d
   - Staggered entry animations for all list items using `flutter_animate`.
   - Comprehensive error handling with graceful offline fallbacks and "Retry" mechanisms.
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Framework**: [Flutter](https://flutter.dev/)
 - **State Management**: [Provider](https://pub.dev/packages/provider)
@@ -25,7 +25,7 @@ IntelliDent AI is a modern, premium Flutter application designed for AI-driven d
 - **Aesthetics**: Material 3 with Custom Design System
 
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -51,7 +51,7 @@ IntelliDent AI is a modern, premium Flutter application designed for AI-driven d
    flutter run
    ```
 
-## 📝 Implementation Details
+## Implementation Details
 
 - **API Integration**: The app fetches scan data from JSONPlaceholder. If a network error occurs (e.g., DNS issues), the app automatically switches to an optimized "Offline Mode" showing mock data to ensure a seamless user experience.
 - **Theming**: A centralized `AppTheme` manages light/dark-ready tokens, ensuring consistency across buttons, text styles, and cards.
