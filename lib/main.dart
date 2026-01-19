@@ -4,6 +4,7 @@ import 'package:dental_app/features/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/dashboard/providers/checklist_provider.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 
@@ -17,7 +18,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ChecklistProvider()),
+      ],
       child: MaterialApp(
         title: 'IntelliDent AI',
         debugShowCheckedModeBanner: false,

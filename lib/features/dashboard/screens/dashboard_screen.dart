@@ -5,6 +5,7 @@ import 'package:dental_app/core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../dental_tips/screens/tips_list_screen.dart';
 import '../../history/screens/api_history_screen.dart';
+import 'checklist_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -204,6 +205,16 @@ class ProfileScreen extends StatelessWidget {
             ).animate().fadeIn(delay: 300.ms),
             const SizedBox(height: 40),
             _buildProfileOption(Icons.person_outline, "Account Settings"),
+            _buildProfileOption(
+              Icons.checklist_rounded,
+              "Daily Dental Checklist",
+              onTap: (context) => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChecklistScreen(),
+                ),
+              ),
+            ),
             _buildProfileOption(Icons.notifications_none, "Notifications"),
             _buildProfileOption(Icons.security_outlined, "Privacy & Security"),
             _buildProfileOption(Icons.help_outline, "Help & Support"),
@@ -213,20 +224,29 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileOption(IconData icon, String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        trailing: const Icon(Icons.chevron_right, size: 20),
-        onTap: () {},
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0);
+  Widget _buildProfileOption(
+    IconData icon,
+    String title, {
+    Function(BuildContext)? onTap,
+  }) {
+    return Builder(
+      builder: (context) => Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: ListTile(
+          leading: Icon(icon, color: AppColors.primary),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          trailing: const Icon(Icons.chevron_right, size: 20),
+          onTap: () => onTap?.call(context),
+        ),
+      ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0),
+    );
   }
 }
