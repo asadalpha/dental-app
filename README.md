@@ -29,7 +29,7 @@ For API interactions, we utilize **Dio** instead of the standard `http` package 
 - **Advanced Features**: Built-in support for FormData, file uploads, and request cancellation.
 - **Superior Error Handling**: Provides detailed `DioException` objects that make debugging network issues much simpler.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Framework**: Flutter
 - **State Management**: Provider
@@ -39,7 +39,7 @@ For API interactions, we utilize **Dio** instead of the standard `http` package 
 
 
 
-## 🏁 Getting Started
+##  Getting Started
 
 1. Clone the repository.
 2. Run `flutter pub get` to install dependencies.
