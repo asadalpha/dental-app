@@ -1,16 +1,46 @@
-# IntelliDent AI - Dental Care App
+# Dental AI App - IntelliDent AI
 
-IntelliDent AI is a modern, premium Flutter application designed for AI-driven dental diagnostics and patient care. The app features a high-fidelity user interface with smooth animations and a consistent design language.
+A modern Flutter application designed for dental diagnostics and health monitoring, leveraging AI for smart analysis.
 
-## Getting Started
+## Implementation Choices
 
-This project is a starting point for a Flutter application.
+### 1. Architecture: Feature-First (Clean Layout)
 
-A few resources to get you started if this is your first Flutter project:
+The project follows a **feature-based architecture**, which ensures high maintainability and scalability.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **core/**: Contains global constants, themes, and utility functions used across the app.
+- **features/**: Each feature (Auth, Dashboard, History, Onboarding) has its own folder containing its logic (providers), models, and UI (screens/widgets).
+- **shared/**: Houses reusable UI components used by multiple features.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 2. State Management: Provider
+
+We chose **Provider** for state management because of its simplicity and efficiency in the Flutter ecosystem.
+
+- **Global Accessible State**: Using `MultiProvider` in the root (`main.dart`) allows us to provide application-wide state like `AuthProvider` and `ChecklistProvider`.
+- **Reactivity**: It leverages `ChangeNotifier` to notify listeners only when necessary, keeping the UI in sync with the business logic.
+- **Decoupling**: It helps separate the UI from the underlying business logic, making the code easier to test and maintain.
+
+### 3. Networking: Dio
+
+For API interactions, we utilize **Dio** instead of the standard `http` package for several technical advantages:
+
+- **Interceptors**: Easily add global loggers, authentication headers, or error handling.
+- **Global Configuration**: Set base URLs, timeouts, and headers once in `BaseOptions`.
+- **Advanced Features**: Built-in support for FormData, file uploads, and request cancellation.
+- **Superior Error Handling**: Provides detailed `DioException` objects that make debugging network issues much simpler.
+
+## 🛠️ Tech Stack
+
+- **Framework**: Flutter
+- **State Management**: Provider
+- **Networking**: Dio
+- **Animations**: Flutter Animate
+- **API**: DummyJSON (for demo data/history)
+
+
+
+## 🏁 Getting Started
+
+1. Clone the repository.
+2. Run `flutter pub get` to install dependencies.
+3. Run `flutter run` to launch the app.
