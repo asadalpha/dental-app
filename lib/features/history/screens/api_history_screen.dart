@@ -1,10 +1,11 @@
-import 'dart:convert';
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
 import 'package:dental_app/core/theme/app_colors.dart';
 import '../models/history_model.dart';
-import 'dart:developer' as developer;
 
 class ApiHistoryScreen extends StatefulWidget {
   const ApiHistoryScreen({super.key});
@@ -14,6 +15,13 @@ class ApiHistoryScreen extends StatefulWidget {
 }
 
 class _ApiHistoryScreenState extends State<ApiHistoryScreen> {
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
+
   List<HistoryModel> _historyData = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -25,84 +33,102 @@ class _ApiHistoryScreenState extends State<ApiHistoryScreen> {
   }
 
   Future<void> _fetchHistory() async {
-    developer.log('Fetching history from API...', name: 'ApiHistoryScreen');
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/posts?_limit=20'),
+      developer.log('Fetching history (Dio)...', name: 'ApiHistoryScreen');
+
+      final response = await _dio.get(
+        'https://dummyjson.com/posts',
+        queryParameters: {'limit': 20},
       );
 
       developer.log(
-        'API Response Status: ${response.statusCode}',
+        'Status Code: ${response.statusCode}',
         name: 'ApiHistoryScreen',
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> decodedData = json.decode(response.body);
-        setState(() {
-          _historyData = decodedData
-              .map((json) => HistoryModel.fromJson(json))
-              .toList();
-          _isLoading = false;
-          _errorMessage = null;
-        });
-        developer.log(
-          'Successfully fetched ${_historyData.length} items',
-          name: 'ApiHistoryScreen',
-        );
-      } else {
-        throw Exception(
-          'Failed to load history (Status: ${response.statusCode})',
-        );
+      if (response.statusCode != 200) {
+        throw Exception('Server error ${response.statusCode}');
       }
-    } catch (e, stacktrace) {
+
+      final List data = response.data['posts'];
+
+      _historyData = data
+          .map(
+            (e) => HistoryModel(
+              userId: e['userId'],
+              id: e['id'],
+              title: e['title'],
+              body: e['body'],
+            ),
+          )
+          .toList();
+
+      setState(() {
+        _isLoading = false;
+      });
+
       developer.log(
-        'Error fetching history, using fallback',
+        'Fetched ${_historyData.length} items',
+        name: 'ApiHistoryScreen',
+      );
+    } on DioException catch (e, st) {
+      developer.log(
+        'Dio error',
+        name: 'ApiHistoryScreen',
+        error: e.message,
+        stackTrace: st,
+      );
+      _useMockFallback(e.message ?? 'Network error');
+    } catch (e, st) {
+      developer.log(
+        'Unknown error',
         name: 'ApiHistoryScreen',
         error: e,
-        stackTrace: stacktrace,
+        stackTrace: st,
       );
       _useMockFallback(e.toString());
     }
   }
 
-  void _useMockFallback(String originalError) {
-    final mockItems = List.generate(
+  void _useMockFallback(String error) {
+    final mockData = List.generate(
       10,
-      (index) => HistoryModel(
+      (i) => HistoryModel(
         userId: 1,
-        id: index + 101, // Different IDs from real API
-        title: index % 2 == 0 ? "Initial Dental Scan" : "Follow-up Analysis",
-        body: "Mock data used due to: $originalError",
+        id: i + 1,
+        title: i.isEven
+            ? 'Initial Dental Scan'
+            : 'Follow-up Analysis',
+        body: 'Fallback used due to: $error',
       ),
     );
 
     setState(() {
-      _historyData = mockItems;
+      _historyData = mockData;
       _isLoading = false;
-      _errorMessage = null;
+      _errorMessage = error;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Offline Mode: Displaying demo data'),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: () {
-                setState(() {
-                  _isLoading = true;
-                });
-                _fetchHistory();
-              },
-            ),
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Offline mode: showing demo data'),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Retry',
+            textColor: Colors.white,
+            onPressed: _fetchHistory,
           ),
-        );
-      }
+        ),
+      );
     });
   }
 
@@ -111,175 +137,102 @@ class _ApiHistoryScreenState extends State<ApiHistoryScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 120.0,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                "Scan History",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.secondary.withOpacity(0.05),
-                      Colors.white,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildAppBar(),
           SliverPadding(
-            padding: const EdgeInsets.all(16.0),
-            sliver: _buildSliverBody(),
+            padding: const EdgeInsets.all(16),
+            sliver: _buildBody(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSliverBody() {
+  SliverAppBar _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text(
+          'Scan History',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.secondary.withOpacity(0.05),
+                Colors.white,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
       return const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (_errorMessage != null) {
-      return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: AppColors.error,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "Failed to load history",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isLoading = true;
-                    _errorMessage = null;
-                  });
-                  _fetchHistory();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(120, 48),
-                ),
-                child: const Text("Retry"),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     if (_historyData.isEmpty) {
       return const SliverFillRemaining(
-        child: Center(child: Text("No history available")),
+        child: Center(child: Text('No history available')),
       );
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final item = _historyData[index];
-        return _buildHistoryItem(item, index);
-      }, childCount: _historyData.length),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) =>
+            _buildHistoryItem(_historyData[index], index),
+        childCount: _historyData.length,
+      ),
     );
   }
 
   Widget _buildHistoryItem(HistoryModel item, int index) {
     return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: CircleAvatar(
+          backgroundColor: index.isEven
+              ? AppColors.primary.withOpacity(0.1)
+              : AppColors.secondary.withOpacity(0.1),
+          child: Icon(
+            index.isEven
+                ? Icons.biotech_rounded
+                : Icons.medical_services_rounded,
+            color:
+                index.isEven ? AppColors.primary : AppColors.secondary,
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: index % 2 == 0
-                    ? AppColors.primary.withOpacity(0.1)
-                    : AppColors.secondary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                index % 2 == 0
-                    ? Icons.biotech_rounded
-                    : Icons.medical_services_rounded,
-                color: index % 2 == 0 ? AppColors.primary : AppColors.secondary,
-                size: 24,
-              ),
-            ),
-            title: Text(
-              "Scan #${item.id}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                item.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.textSecondary),
-              ),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const Text(
-                  "20 Jan",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-                Text(
-                  "10:${(index % 60).toString().padLeft(2, '0')} AM",
-                  style: const TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-            onTap: () {
-              developer.log(
-                'Tapped on Scan #${item.id}',
-                name: 'ApiHistoryScreen',
-              );
-            },
+        ),
+        title: Text(
+          'Scan #${item.id}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
-        )
+        ),
+        subtitle: Text(
+          item.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+      ),
+    )
         .animate()
-        .fadeIn(delay: (index * 50).ms, duration: 400.ms)
-        .slideY(begin: 0.1, end: 0);
+        .fadeIn(duration: 300.ms, delay: (index * 40).ms)
+        .slideY(begin: 0.1);
   }
 }
